@@ -70,7 +70,7 @@ function M.init(opts)
 	vim.api.nvim_create_autocmd("WinEnter", {
 		callback = function()
             -- Skip if previous win was floating
-            if previous_nvim_window and vim.api.nvim_win_is_valid(previous_win) then
+            if previous_nvim_window and vim.api.nvim_win_is_valid(previous_nvim_window) then
               local cfg = vim.api.nvim_win_get_config(previous_nvim_window)
               if cfg.relative ~= "" then
                 return
