@@ -2,7 +2,7 @@ local M = {}
 
 local zoomed_nvim_window = nil
 local zoomed_tmux_window = nil
-local previous_nvim_window = nil
+local nvim_window_was_floating = false
 local equalize_windows = false
 
 local function get_tmux_window()
@@ -69,14 +69,11 @@ function M.init(opts)
 	})
 	vim.api.nvim_create_autocmd("WinEnter", {
 		callback = function()
-            -- Skip if previous win was floating
-            if previous_nvim_window and vim.api.nvim_win_is_valid(previous_nvim_window) then
-              local cfg = vim.api.nvim_win_get_config(previous_nvim_window)
-              if cfg.relative ~= "" then
-                return
-              end
-              previous_nvim_window = nil
-            end
+			-- Skip if previous win was floating
+			if nvim_window_was_floating then
+				nvim_window_was_floating = false
+				return
+			end
 
 			local sync_tmux_on_win_enter = (M.options.sync_tmux_on and M.options.sync_tmux_on.win_enter) or true
 			if zoomed_nvim_window then
@@ -106,11 +103,17 @@ function M.init(opts)
 		end,
 	})
 
-    vim.api.nvim_create_autocmd("WinLeave", {
-      callback = function()
-        previous_nvim_window = vim.api.nvim_get_current_win()
-      end,
-    })
+	vim.api.nvim_create_autocmd("WinLeave", {
+		callback = function()
+			local win = vim.api.nvim_get_current_win()
+			if vim.api.nvim_win_is_valid(win) then
+				local cfg = vim.api.nvim_win_get_config(win)
+				nvim_window_was_floating = (cfg.relative ~= "")
+			else
+				nvim_window_was_floating = false
+			end
+		end,
+	})
 end
 
 return M
