@@ -75,6 +75,7 @@ function M.init(opts)
               if cfg.relative ~= "" then
                 return
               end
+              previous_nvim_window = nil
             end
 
 			local sync_tmux_on_win_enter = (M.options.sync_tmux_on and M.options.sync_tmux_on.win_enter) or true
