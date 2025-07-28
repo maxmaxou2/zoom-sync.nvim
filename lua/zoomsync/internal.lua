@@ -53,27 +53,27 @@ function M.init(opts)
 	-- Auto commands
 	vim.api.nvim_create_autocmd("FocusLost", {
 		callback = function()
-			local sync_tmux_focus_lost = (M.options.sync_tmux and M.options.sync_tmux.focus_lost) or true
+			local sync_tmux_on_focus_lost = (M.options.sync_tmux_on and M.options.sync_tmux_on.focus_lost) or true
 			local cur_win = get_tmux_window()
 			if
 				zoomed_nvim_window
 				and zoomed_tmux_window
 				and cur_win == zoomed_tmux_window
 				and not is_tmux_zoomed()
-				and sync_tmux_focus_lost
+				and sync_tmux_on_focus_lost
 			then
-				toggle_zoom(sync_tmux_focus_lost)
+				toggle_zoom(sync_tmux_on_focus_lost)
 			end
 		end,
 	})
 	vim.api.nvim_create_autocmd("WinEnter", {
 		callback = function()
-			local sync_tmux_win_enter = (M.options.sync_tmux and M.options.sync_tmux.win_enter) or true
+			local sync_tmux_on_win_enter = (M.options.sync_tmux_on and M.options.sync_tmux_on.win_enter) or true
 			if zoomed_nvim_window then
-				if vim.env.TMUX and is_tmux_zoomed() and sync_tmux_win_enter then
+				if vim.env.TMUX and is_tmux_zoomed() and sync_tmux_on_win_enter then
 					vim.fn.system({ "tmux", "resize-pane", "-Z" })
 				end
-				toggle_zoom(sync_tmux_win_enter)
+				toggle_zoom(sync_tmux_on_win_enter)
 			end
 			if equalize_windows then
 				vim.cmd("WindowsEqualize")

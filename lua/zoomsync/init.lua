@@ -10,7 +10,7 @@ local function deep_merge(tbl1, tbl2)
 	end
 end
 
-local default_opts = { sync_tmux = { focus_lost = true, win_enter = true } }
+local default_opts = { sync_tmux_on = { focus_lost = true, win_enter = true } }
 
 function M.setup(user_opts)
 	user_opts = user_opts or {}
