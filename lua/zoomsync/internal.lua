@@ -76,7 +76,9 @@ function M.init(opts)
 				toggle_zoom(sync_tmux_on_win_enter)
 			end
 			if equalize_windows then
-				vim.cmd("WindowsEqualize")
+				if vim.fn.exists(":WindowsEqualize") == 2 then
+					vim.cmd("WindowsEqualize")
+				end
 				equalize_windows = false
 			end
 		end,
