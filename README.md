@@ -3,6 +3,7 @@
 Synchronize zoom between Neovim splits and Tmux panes.
 
 This plugin lets you **maximize a Neovim window** using [`windows.nvim`](https://github.com/anuvyklack/windows.nvim) while **automatically toggling Tmux zoom mode** at the same time — and **keeps them in sync**. If you unzoom in Tmux or Neovim, the other follows.
+Just press your **tmux zoom keybinding** and the plugin will **sync the zoom state in Neovim**.
 
 ---
 

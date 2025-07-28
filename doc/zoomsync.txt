@@ -1,0 +1,58 @@
+*zoomsync.txt*  ZoomSync Plugin                                Last Change: 2025-07-28
+
+ZoomSync - Sync zoom between Neovim and tmux         *ZoomSync* *zoom-sync*
+
+This plugin synchronizes zooming in Neovim (via windows.nvim) and tmux.
+It allows toggling, enabling, or disabling zoom state across both.
+By pressing your tmux zoom keybinding, it will sync the zoom state in Neovim
+
+==============================================================================
+Commands                                                   *zoomsync-commands*
+
+These user commands are provided:
+
+:ZoomToggle       Toggle zoom in Neovim
+:ZoomToggle!      Sync Neovim zoom with tmux
+:ZoomEnable       Zoom on in Neovim
+:ZoomEnable!      Zoom on in Neovim if tmux is zoomed
+:ZoomDisable      Zoom off in Neovim
+:ZoomDisable!     Zoom off in Neovim if tmux is zoomed off
+
+==============================================================================
+Configuration                                              *zoomsync-setup*
+
+Setup the plugin in your Neovim config:
+
+>lua
+require("zoomsync").setup({
+  sync_tmux_on = {
+    win_enter = true,  -- sync Tmux zoom on Neovim window enter
+    focus_lost = true,  -- sync Tmux zoom on Neovim focus lost
+  },
+})
+<
+
+Keymaps are not defined by default. You can set your own:
+
+>lua
+vim.keymap.set("n", "<leader>zz", "<cmd>ZoomToggle<CR>")
+<
+
+To allow tmux to communicate with Neovim, you can add this to your .tmux.conf:
+
+>tmux
+bind z run-shell ' \
+  tmux resize-pane -Z; \
+  if [ "$(tmux display-message -p "#{pane_current_command}")" = "nvim" ]; then \
+    tmux send-keys Escape : "ZoomToggle!" Enter; \
+  fi; \
+'
+<
+
+==============================================================================
+License                                                     *zoomsync-license*
+
+MIT License. Copyright 2025 Maxence Rossignol.
+
+==============================================================================
+*EOF*
