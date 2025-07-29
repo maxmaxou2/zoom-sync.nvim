@@ -21,6 +21,7 @@ local function is_tmux_zoomed()
 end
 
 local function toggle_zoom(sync_tmux)
+	vim.print("toggling" .. tostring(zoomed_nvim_window))
 	if sync_tmux and vim.env.TMUX then
 		if is_tmux_zoomed() and zoomed_nvim_window then
 			return
@@ -69,19 +70,41 @@ function M.init(opts)
 	})
 	vim.api.nvim_create_autocmd("WinEnter", {
 		callback = function()
-			-- Skip if previous win was floating
+			local win = vim.api.nvim_get_current_win()
+			if not vim.api.nvim_win_is_valid(win) then
+				return
+			end
+
+			local cfg = vim.api.nvim_win_get_config(win)
+			if cfg.relative ~= "" then
+				return
+			end
+
 			if nvim_window_was_floating then
+                -- NOTE: This is a workaround for a bug in windows.nvim where
+                --       it doesn't handle floating windows correctly.
+                --       I'll eventually code my own maximize function.
+				if zoomed_tmux_window then
+					vim.defer_fn(function()
+						vim.cmd("WindowsMaximize")
+					end, 1)
+				end
 				nvim_window_was_floating = false
 				return
 			end
 
-			local sync_tmux_on_win_enter = (M.options.sync_tmux_on and M.options.sync_tmux_on.win_enter) or true
+			local sync_tmux_on_win_enter = true
+			if M.options.sync_tmux_on and M.options.sync_tmux_on.win_enter ~= nil then
+				sync_tmux_on_win_enter = M.options.sync_tmux_on.win_enter
+			end
+
 			if zoomed_nvim_window then
 				if vim.env.TMUX and is_tmux_zoomed() and sync_tmux_on_win_enter then
 					vim.fn.system({ "tmux", "resize-pane", "-Z" })
 				end
 				toggle_zoom(sync_tmux_on_win_enter)
 			end
+
 			if equalize_windows then
 				if vim.fn.exists(":WindowsEqualize") == 2 then
 					vim.cmd("WindowsEqualize")
@@ -93,13 +116,13 @@ function M.init(opts)
 
 	vim.api.nvim_create_autocmd("WinNew", {
 		callback = function()
-			equalize_windows = vim.o.equalalways
+			equalize_windows = M.options.equalize_windows or true
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("WinClosed", {
 		callback = function()
-			equalize_windows = vim.o.equalalways
+			equalize_windows = M.options.equalize_windows or true
 		end,
 	})
 
