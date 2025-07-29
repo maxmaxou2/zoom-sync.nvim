@@ -56,7 +56,18 @@ Here's the recommended configuration for `lazy.nvim`:
     vim.keymap.set("n", "<leader>zz", "<cmd>ZoomToggle<CR>", { desc = "Toggle Neovim zoom" })
   end,
 }
+{ "anuvyklack/windows.nvim",
+   requires = "anuvyklack/middleclass",
+   config = function()
+     require("windows").setup({
+       autowidth = { enable = false },
+       animation = { enable = false },
+     })
+   end
+}
 ```
+
+⚠️ Note: Don't forget to setup windows.nvim yourself.
 
 ### .tmux.conf
 
@@ -73,22 +84,16 @@ bind z run-shell ' \
 '
 ```
 
-⚠️ Note: You must setup windows.nvim yourself. Example:
-
 ```lua
-require("windows").setup({
-  autowidth = { enable = false },
-  animation = { enable = false },
-})
+
 ```
 
 ## 🔍 Commands
 
 This plugin provides the following user commands:
 
-| Command             | Description                                                                 |
-|---------------------|-----------------------------------------------------------------------------|
-| `:ZoomToggle[!]`    | Toggles zoom in Neovim and optionally Tmux. <br> Use `!` to sync with Tmux. |
-| `:ZoomEnable[!]`    | Zoom on in Neovim if not zoomed. <br> Use `!` to avoid zooming if Tmux not zoomed.            |
-| `:ZoomDisable[!]`   | Zoom off in Neovim if currently zoomed. <br> Use `!` to avoid unzooming if Tmux zoomed.         |
-
+| Command           | Description                                                                             |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| `:ZoomToggle[!]`  | Toggles zoom in Neovim and optionally Tmux. <br> Use `!` to sync with Tmux.             |
+| `:ZoomEnable[!]`  | Zoom on in Neovim if not zoomed. <br> Use `!` to avoid zooming if Tmux not zoomed.      |
+| `:ZoomDisable[!]` | Zoom off in Neovim if currently zoomed. <br> Use `!` to avoid unzooming if Tmux zoomed. |

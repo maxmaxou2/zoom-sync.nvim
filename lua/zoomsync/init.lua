@@ -17,10 +17,15 @@ function M.setup(user_opts)
 	local opts = vim.deepcopy(default_opts)
 	deep_merge(opts, user_opts)
 
+    -- Check dependency setup
 	local windows_ok, _ = pcall(require, "windows")
 	if not windows_ok then
 		vim.notify("[zoomsync] windows.nvim is not installed!", vim.log.levels.ERROR)
 	end
+    if vim.fn.exists(":WindowsMaximize") ~= 2 then
+        vim.notify("[zoomsync] windows.nvim is not set up! Please call require('windows').setup()", vim.log.levels.ERROR)
+        return
+    end
 
 	local internal = require("zoomsync.internal")
 	internal.init(opts)
