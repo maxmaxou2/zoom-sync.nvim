@@ -14,6 +14,8 @@ Just press your **tmux zoom keybinding** and the plugin will **sync the zoom sta
 - Automatically unzoom when switching windows or focus
 - Minimal config, no performance overhead
 
+[![Demo](assets/demo_zoom_sync.png)](https://github.com/user-attachments/assets/00b6e2c6-de0c-428d-9da4-08847a55c2d1)
+
 ---
 
 ## ⚙️ Requirements
