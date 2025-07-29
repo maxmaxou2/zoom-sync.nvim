@@ -5,10 +5,19 @@ local zoomed_tmux_window = nil
 local nvim_window_was_floating = false
 local equalize_windows = false
 
+local function is_current_window_floating()
+	local win = vim.api.nvim_get_current_win()
+	if not vim.api.nvim_win_is_valid(win) then
+		return false
+	end
+	return vim.api.nvim_win_is_valid(win) and fn.win_gettype(win)
+end
+
 local function get_tmux_window()
 	if not vim.env.TMUX then
 		return nil
 	end
+
 	return vim.fn.trim(vim.fn.system({ "tmux", "display-message", "-p", "#I" }))
 end
 
@@ -16,20 +25,21 @@ local function is_tmux_zoomed()
 	if not vim.env.TMUX then
 		return false
 	end
+
 	local status = vim.fn.system({ "tmux", "display-message", "-p", "#{window_zoomed_flag}" })
 	return vim.fn.trim(status) == "1"
 end
 
 local function toggle_zoom(sync_tmux)
-	vim.print("toggling" .. tostring(zoomed_nvim_window))
-	if sync_tmux and vim.env.TMUX then
-		if is_tmux_zoomed() and zoomed_nvim_window then
-			return
-		elseif not is_tmux_zoomed() and not zoomed_nvim_window then
-			return
-		end
+	local is_zoomed = (zoomed_nvim_window ~= nil)
+	if sync_tmux and vim.env.TMUX and is_zoomed == is_tmux_zoomed() then
+		-- No toggle needed if tmux is not in another state than nvim
+		-- because tmux is zoomed in/out before nvim
+		return
 	end
-	if zoomed_nvim_window then
+
+	-- Swap states
+	if is_zoomed then
 		zoomed_nvim_window = nil
 		zoomed_tmux_window = nil
 	else
@@ -40,11 +50,12 @@ local function toggle_zoom(sync_tmux)
 end
 
 local function enable_zoom(enable, sync_tmux)
-	if enable and not zoomed_nvim_window then
-		toggle_zoom(sync_tmux)
-	elseif not enable and zoomed_nvim_window then
-		toggle_zoom(sync_tmux)
+	local is_zoomed = (zoomed_nvim_window ~= nil)
+	if is_zoomed ~= enable then
+		return
 	end
+
+	toggle_zoom(sync_tmux)
 end
 
 M.toggle = toggle_zoom
@@ -52,10 +63,15 @@ M.enable = enable_zoom
 
 function M.init(opts)
 	M.options = opts or {}
+
 	-- Auto commands
 	vim.api.nvim_create_autocmd("FocusLost", {
 		callback = function()
-			local sync_tmux_on_focus_lost = (M.options.sync_tmux_on and M.options.sync_tmux_on.focus_lost) or true
+			local sync_tmux_on_focus_lost = true
+			if M.options.sync_tmux_on and M.options.sync_tmux_on.focus_lost ~= nil then
+				sync_tmux_on_focus_lost = M.options.sync_tmux_on.focus_lost
+			end
+
 			local cur_win = get_tmux_window()
 			if
 				zoomed_nvim_window
@@ -70,26 +86,17 @@ function M.init(opts)
 	})
 	vim.api.nvim_create_autocmd("WinEnter", {
 		callback = function()
-			local win = vim.api.nvim_get_current_win()
-			if not vim.api.nvim_win_is_valid(win) then
-				return
-			end
-
-			local cfg = vim.api.nvim_win_get_config(win)
-			if cfg.relative ~= "" then
-				return
-			end
-
 			if nvim_window_was_floating then
-                -- NOTE: This is a workaround for a bug in windows.nvim where
-                --       it doesn't handle floating windows correctly.
-                --       I'll eventually code my own maximize function.
+				-- NOTE: This is a workaround for a bug in windows.nvim where
+				--       it unzooms upon leaving a floating window.
 				if zoomed_tmux_window then
-					vim.defer_fn(function()
+					vim.schedule_wrap(function()
 						vim.cmd("WindowsMaximize")
-					end, 1)
+					end)()
 				end
 				nvim_window_was_floating = false
+				return
+			elseif is_current_window_floating() then
 				return
 			end
 
@@ -106,9 +113,7 @@ function M.init(opts)
 			end
 
 			if equalize_windows then
-				if vim.fn.exists(":WindowsEqualize") == 2 then
-					vim.cmd("WindowsEqualize")
-				end
+				vim.cmd("WindowsEqualize")
 				equalize_windows = false
 			end
 		end,
@@ -128,13 +133,7 @@ function M.init(opts)
 
 	vim.api.nvim_create_autocmd("WinLeave", {
 		callback = function()
-			local win = vim.api.nvim_get_current_win()
-			if vim.api.nvim_win_is_valid(win) then
-				local cfg = vim.api.nvim_win_get_config(win)
-				nvim_window_was_floating = (cfg.relative ~= "")
-			else
-				nvim_window_was_floating = false
-			end
+			nvim_window_was_floating = is_current_window_floating()
 		end,
 	})
 end
