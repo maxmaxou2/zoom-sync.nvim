@@ -10,7 +10,7 @@ local function is_current_window_floating()
 	if not vim.api.nvim_win_is_valid(win) then
 		return false
 	end
-	return vim.api.nvim_win_is_valid(win) and fn.win_gettype(win)
+	return vim.api.nvim_win_is_valid(win) and vim.fn.win_gettype(win) == "popup"
 end
 
 local function get_tmux_window()
