@@ -46,6 +46,10 @@ Here's the recommended configuration for `lazy.nvim`:
     vim.o.winwidth = 1
     vim.o.winminwidth = 1
     vim.o.equalalways = false -- disable equal window size to let zoomsync handle it
+    require("windows").setup({
+      autowidth = { enable = false },
+      animation = { enable = true, duration = 300, fps = 45, easing = "in_out_sine" },
+    })
     require("zoomsync").setup({
       sync_tmux_on = {
         win_enter = true,  -- sync Tmux zoom on Neovim window enter
@@ -58,18 +62,9 @@ Here's the recommended configuration for `lazy.nvim`:
     vim.keymap.set("n", "<leader>zz", "<cmd>ZoomToggle<CR>", { desc = "Toggle Neovim zoom" })
   end,
 }
-{ "anuvyklack/windows.nvim",
-   requires = "anuvyklack/middleclass",
-   config = function()
-     require("windows").setup({
-       autowidth = { enable = false },
-       animation = { enable = true, duration = 300, fps = 45, easing = "in_out_sine" },
-     })
-   end
-}
 ```
 
-⚠️ Note: Don't forget to setup windows.nvim yourself.
+⚠️ Note: Don't forget to setup windows.nvim.
 
 ### .tmux.conf
 
