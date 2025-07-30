@@ -95,8 +95,10 @@ function M.init(opts)
 					end)()
 				end
 				nvim_window_was_floating = false
+				equalize_windows = false
 				return
 			elseif is_current_window_floating() then
+				equalize_windows = false
 				return
 			end
 
@@ -121,13 +123,13 @@ function M.init(opts)
 
 	vim.api.nvim_create_autocmd("WinNew", {
 		callback = function()
-			equalize_windows = M.options.equalize_windows or true
+            equalize_windows = M.options.equalize_windows or true
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("WinClosed", {
 		callback = function()
-			equalize_windows = M.options.equalize_windows or true
+            equalize_windows = M.options.equalize_windows or true
 		end,
 	})
 
