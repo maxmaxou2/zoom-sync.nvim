@@ -6,11 +6,13 @@ local nvim_window_was_floating = false
 local equalize_windows = false
 
 local function is_current_window_floating()
-	local win = vim.api.nvim_get_current_win()
-	if not vim.api.nvim_win_is_valid(win) then
-		return false
-	end
-	return vim.api.nvim_win_is_valid(win) and vim.fn.win_gettype(win) == "popup"
+    local win = vim.api.nvim_get_current_win()
+    if not vim.api.nvim_win_is_valid(win) then
+      return false
+    end
+
+    local config = vim.api.nvim_win_get_config(win)
+    return config.relative ~= ""
 end
 
 local function get_tmux_window()
@@ -67,6 +69,7 @@ function M.init(opts)
 	-- Auto commands
 	vim.api.nvim_create_autocmd("FocusLost", {
 		callback = function()
+            vim.print("Focus lost")
 			local sync_tmux_on_focus_lost = true
 			if M.options.sync_tmux_on and M.options.sync_tmux_on.focus_lost ~= nil then
 				sync_tmux_on_focus_lost = M.options.sync_tmux_on.focus_lost
@@ -86,6 +89,7 @@ function M.init(opts)
 	})
 	vim.api.nvim_create_autocmd("WinEnter", {
 		callback = function()
+            vim.print("Win entered")
 			if nvim_window_was_floating then
 				-- NOTE: This is a workaround for a bug in windows.nvim where
 				--       it unzooms upon leaving a floating window.
@@ -113,28 +117,42 @@ function M.init(opts)
 				end
 				toggle_zoom(sync_tmux_on_win_enter)
 			end
-
-			if equalize_windows then
-				vim.cmd("WindowsEqualize")
-				equalize_windows = false
-			end
+            if equalize_windows then
+                vim.print("Equalizing windows")
+                equalize_windows = false
+                vim.cmd("WindowsEqualize")
+                vim.print("Windows equalized", equalize_windows)
+            end
 		end,
 	})
 
+    local always_equalize = true
+    if M.options.equalize_windows ~= nil then
+        always_equalize = M.options.equalize_windows
+    end
 	vim.api.nvim_create_autocmd("WinNew", {
 		callback = function()
-            equalize_windows = M.options.equalize_windows or true
+            vim.print("New window detected")
+			if not is_current_window_floating() then
+                vim.print("Asking to equalize windows")
+                equalize_windows = always_equalize
+            end
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("WinClosed", {
 		callback = function()
-            equalize_windows = M.options.equalize_windows or true
+            vim.print("Window closed")
+			if not is_current_window_floating() then
+                vim.print("Asking to equalize windows")
+                equalize_windows = always_equalize
+            end
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("WinLeave", {
 		callback = function()
+            vim.print("Win left")
 			nvim_window_was_floating = is_current_window_floating()
 		end,
 	})
